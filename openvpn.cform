@@ -23,7 +23,7 @@
             		"default" : "VPC id"
             	},
 
-                "PublicNACL": {
+                "PublicNACLid": {
                     "default": "Public NACL id"
                 },
 
@@ -43,12 +43,12 @@
     		"Type": "List<AWS::EC2::VPC::Id>"
     	},
 
-        "PublicNACL": {
+        "PublicNACLid": {
             "Description": "Enter the NACL Id for Public Subnet",
             "Type": "String"
         },
 
-        "ElasticIPid": {
+        "ElasticIPaddress": {
             "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
             "ConstraintDescription": "IP Address parameter must be in the form x.x.x.x",
             "Default": "0.0.0.0",
@@ -83,7 +83,7 @@
 		                   "git clone https://github.com/redgeoff/openvpn-server-vagrant\n",
 		                   "cd /home/ubuntu/openvpn-server-vagrant\n",
 		                   "cp config-default.sh config.sh\n",
-		                   "sed 's/192.168.50.11/", {"Ref" : "ElasticIPid"}, "/g' config.sh -i\n",
+		                   "sed 's/192.168.50.11/", {"Ref" : "ElasticIPaddress"}, "/g' config.sh -i\n",
 		                   "apt-get update && apt-get install -y openvpn\n",
 		                   "/home/ubuntu/openvpn-server-vagrant/openvpn.sh\n",
 		                   "sed '143 a push \"route 10.0.0.0 255.255.0.0\"' /etc/openvpn/server.conf -i\n",
@@ -105,7 +105,7 @@
 			"Type" : "AWS::EC2::EIPAssociation",
 			"Properties" : {
 				"InstanceId" : {"Ref" : "EC2Instance"},
-				"EIP" : {"Ref" : "ElasticIPid"}
+				"EIP" : {"Ref" : "ElasticIPaddress"}
 			},
 			"DependsOn" : "EC2Instance"
 		},
@@ -113,7 +113,7 @@
 	    "PublicSubnetNACLPublicAccess1194" : {
 	    	"Type" : "AWS::EC2::NetworkAclEntry",
 			"Properties": {
-				"NetworkAclId" : { "Ref" : "PublicNACL"},
+				"NetworkAclId" : { "Ref" : "PublicNACLid"},
 				"RuleNumber" : "400",
 				"Protocol" : "17",
 				"PortRange" : { "From" : "1194", "To" : "1194" },
@@ -126,7 +126,7 @@
 		"PublicSubnetNACLPublicAccessUDPephemeralegress" : { 
 			"Type" : "AWS::EC2::NetworkAclEntry",
 			"Properties": {
-				"NetworkAclId" : { "Ref" : "PublicNACL"},
+				"NetworkAclId" : { "Ref" : "PublicNACLid"},
 				"RuleNumber" : "400",
 				"Protocol" : "17",
 				"PortRange" : { "From" : "1024", "To" : "65535" },
@@ -139,7 +139,7 @@
 	    "PublicSubnetNACLPublicAccess22egressPrivateSubnet1" : {
 	    	"Type" : "AWS::EC2::NetworkAclEntry",
 			"Properties": {
-				"NetworkAclId" : { "Ref" : "PublicNACL"},
+				"NetworkAclId" : { "Ref" : "PublicNACLid"},
 				"RuleNumber" : "500",
 				"Protocol" : "6",
 				"PortRange" : { "From" : "22", "To" : "22" },
@@ -152,7 +152,7 @@
 		"PublicSubnetNACLPublicAccess22egressPrivateSubnet2" : { 
 			"Type" : "AWS::EC2::NetworkAclEntry",
 			"Properties": {
-				"NetworkAclId" : { "Ref" : "PublicNACL"},
+				"NetworkAclId" : { "Ref" : "PublicNACLid"},
 				"RuleNumber" : "600",
 				"Protocol" : "6",
 				"PortRange" : { "From" : "22", "To" : "22" },
