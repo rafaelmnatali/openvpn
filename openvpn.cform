@@ -13,7 +13,6 @@
                     "Parameters": [
                     	"VPC",
                         "Public Network ACL",
-                        "ElasticIP",
                         "Public Subnet"                   
                     ]
                 }
@@ -25,10 +24,6 @@
 
                 "PublicNACLid": {
                     "default": "Public NACL id"
-                },
-
-                "ElasticIP": {
-                	"default": "Elastic IP for OpenVPN"
                 },
 
                 "Pulic Subnet": {
@@ -48,14 +43,6 @@
             "Type": "String"
         },
 
-        "ElasticIPaddress": {
-            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
-            "ConstraintDescription": "IP Address parameter must be in the form x.x.x.x",
-            "Default": "0.0.0.0",
-            "Description": "Enter the Elastic IP for OpenVPN Server",
-            "Type": "String"
-        },
-
         "PublicSubnet": {
         	"Description": "Select the Public Subnet to deploy the OpenVPN Server",
         	"Type": "List<AWS::EC2::Subnet::Id>"
@@ -65,6 +52,13 @@
 
 
 	"Resources": {
+
+		"ElasticIPaddress" : {
+			"Type" : "AWS::EC2::EIP",
+			"Properties" : {
+				"Domain" : "vpc"
+			   }
+		},
 
 		"EC2Instance" : {
 			"Type" : "AWS::EC2::Instance",
@@ -87,6 +81,8 @@
 		                   "apt-get update && apt-get install -y openvpn\n",
 		                   "/home/ubuntu/openvpn-server-vagrant/openvpn.sh\n",
 		                   "sed '143 a push \"route 10.0.0.0 255.255.0.0\"' /etc/openvpn/server.conf -i\n",
+		                   "sed '203 a push \"dhcp-option DNS 10.0.0.2\"' /etc/openvpn/server.conf -i\n",
+		                   "sed '204 a push \"dhcp-option DOMAIN rmnatali.net\"' /etc/openvpn/server.conf -i\n",
 		                   "systemctl restart openvpn@server\n",
 		                   "apt install -y awscli\n",
 		                   "aws s3 cp s3://natalilogs/users.txt /home/ubuntu/openvpn-server-vagrant/\n",
@@ -98,7 +94,9 @@
 		               },
 
 		            "Tags" : [ {"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"}}, { "Key" : "Name", "Value" : "OpenVPN-Server"}]
-		    }
+		    },
+
+		    "DependsOn" : "ElasticIPaddress"
 		},
 
 		"ElasticIPAssociation" : {
@@ -107,6 +105,7 @@
 				"InstanceId" : {"Ref" : "EC2Instance"},
 				"EIP" : {"Ref" : "ElasticIPaddress"}
 			},
+
 			"DependsOn" : "EC2Instance"
 		},
 	
