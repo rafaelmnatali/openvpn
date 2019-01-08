@@ -1,7 +1,7 @@
 {
 	"AWSTemplateFormatVersion" : "2010-09-09",
 
-	  "Description": "This template defines the network parameters for a new 3 tier VPC with 2 public, private, and database private subnets", 
+	  "Description": "This template creates an EC2 instance and configure OpenVPN", 
   	  
   	  "Metadata": {
         "AWS::CloudFormation::Interface": {
