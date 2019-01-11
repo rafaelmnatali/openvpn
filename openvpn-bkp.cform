@@ -1,0 +1,105 @@
+{
+	"AWSTemplateFormatVersion" : "2010-09-09",
+
+	  "Description": "This template creates an EC2 instance and configure OpenVPN", 
+  	  
+  	  "Metadata": {
+        "AWS::CloudFormation::Interface": {
+            "ParameterGroups": [
+                {
+                    "Label": {
+                        "default": "Network Configuration"
+                    },
+                    "Parameters": [
+                    	"VPC",
+                        "Public Subnet",
+                        "Security Group",
+                        "Key Pair"                   
+                    ]
+                }
+            ],
+            "ParameterLabels": {
+            	"VpcId": {
+            		"default" : "VPC id"
+            	},
+
+                "Pulic Subnet": {
+                	"default": "Public Subnet id"
+                },
+
+                "SecurityGroup" : {
+                	"default": "SecurityGroup"
+                },
+
+                "KeyName" : {
+                	"default": "Select the appropriate KeyPair for this instance"
+                }               
+            }
+        }
+    },
+
+    "Parameters": {
+    	"VpcId": {
+    		"Description": "Enter the VPC where to configure OpenVPN",
+    		"Type": "List<AWS::EC2::VPC::Id>"
+    	},
+
+        "PublicSubnet": {
+        	"Description": "Select the Public Subnet to deploy the OpenVPN Server",
+        	"Type": "List<AWS::EC2::Subnet::Id>"
+        },
+
+        "SecurityGroupId": {
+        	"Description" : "Select the Security Group to be used with this instance",
+        	"Type": "AWS::EC2::SecurityGroup::Id"
+        },
+
+        "KeyName": {
+        	"Description" : "Select a valid Key Pair to connect to this instance",
+        	"Type": "AWS::EC2::KeyPair::KeyName"
+        }
+
+    },
+
+
+	"Resources": {
+
+		"EC2InstanceBKP" : {
+			"Type" : "AWS::EC2::Instance",
+			"Properties" : {
+				"ImageId" : "ami-0a1b6fb92034c7e22",
+		            "KeyName" : { "Ref" : "KeyName" },
+		            "SecurityGroupIds" : [{ "Ref" : "SecurityGroupId"}],
+		            "SubnetId" : { "Fn::Select" : [ "0", { "Ref" : "PublicSubnet"}]},
+		            "InstanceType" : "t2.micro",
+		            "IamInstanceProfile" : "natali_ec2_fullaccess",
+		            "SourceDestCheck" : "False",           
+		            "Tags" : [ {"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"}}, { "Key" : "Name", "Value" : "OpenVPN-Server-bkp"}]
+		    }
+		},
+
+		"OpenVPNbkpEvent": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+                "Description": "trigger whenever CloudWatch detects that the OpenVPN-Server is stopped",
+                "Name": "ec2_lambda_openvpn_rule",
+                "EventPattern": {
+                    "source": [
+                        "aws.ec2"
+                    ],
+                    "detail-type": [
+                        "OpenVPN-Server State-change Notification"
+                    ],
+                   "detail": {
+                   	   "state": [
+                   	      "stopped"
+                   	    ],
+                   	    "instance-id": [
+                   	      "i-00ffb9d8ca3e1ee18"
+                   	    ]
+                   	}
+                }
+            }
+	    }
+    }
+}	
