@@ -99,39 +99,6 @@
 		    "DependsOn" : "ElasticIPaddress"
 		},
 
-		"EC2InstanceBKP" : {
-			"Type" : "AWS::EC2::Instance",
-			"Properties" : {
-				"ImageId" : "ami-0f9cf087c1f27d9b1",
-		            "KeyName" : "openvpn-virginia",
-		            "SecurityGroupIds" : [ { "Ref" : "OpenVPNSecurityGroup"}],
-		            "SubnetId" : { "Fn::Select" : [ "1", { "Ref" : "PublicSubnet"}]},
-		            "InstanceType" : "t2.micro",
-		            "IamInstanceProfile" : "natali_ec2_fullaccess",
-		            "SourceDestCheck" : "False",            
-		            "UserData": {
-		                 "Fn::Base64": { "Fn::Join":["", [
-		                   "#!/bin/bash -ex\n",
-		                   "cd /home/ubuntu/\n",
-		                   "git clone https://github.com/redgeoff/openvpn-server-vagrant\n",
-		                   "cd /home/ubuntu/openvpn-server-vagrant\n",
-		                   "cp config-default.sh config.sh\n",
-		                   "sed 's/192.168.50.11/", {"Ref" : "ElasticIPaddress"}, "/g' config.sh -i\n",
-		                   "apt-get update && apt-get install -y openvpn\n",
-		                   "/home/ubuntu/openvpn-server-vagrant/openvpn.sh\n",
-		                   "sed '143 a push \"route 10.0.0.0 255.255.0.0\"' /etc/openvpn/server.conf -i\n",
-		                   "sed '203 a push \"dhcp-option DNS 10.0.0.2\"' /etc/openvpn/server.conf -i\n",
-		                   "sed '204 a push \"dhcp-option DOMAIN rmnatali.net\"' /etc/openvpn/server.conf -i\n",
-		                   "systemctl restart openvpn@server\n"
-		                 ]]}
-		               },
-
-		            "Tags" : [ {"Key" : "Application", "Value" : { "Ref" : "AWS::StackId"}}, { "Key" : "Name", "Value" : "OpenVPN-Server-BKP"}]
-		    },
-
-		    "DependsOn" : "ElasticIPaddress"
-		},		
-
 		"ElasticIPAssociation" : {
 			"Type" : "AWS::EC2::EIPAssociation",
 			"Properties" : {
